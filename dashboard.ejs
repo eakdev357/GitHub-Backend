@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand { font-weight: bold; }
+        .card { box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); margin-bottom: 1rem; }
+        .status-card { transition: transform 0.2s; }
+        .status-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-industry"></i> ระบบจัดการการผลิต
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/"><i class="fas fa-home"></i> หน้าแรก</a>
+                <a class="nav-link" href="/contracts"><i class="fas fa-file-contract"></i> สัญญา</a>
+                <a class="nav-link" href="/production-queue"><i class="fas fa-list"></i> คิวการผลิต</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4"><i class="fas fa-dashboard"></i> <%= title %></h1>
+        
+        <% if (dbError) { %>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> <%= dbError %>
+            </div>
+        <% } %>
+
+        <!-- สถิติ -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary status-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-title">สัญญาทั้งหมด</h6>
+                                <h2><%= contracts.length %></h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-file-contract fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning status-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-title">รอดำเนินการ</h6>
+                                <h2><%= orderStats.pending %></h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success status-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-title">กำลังผลิต</h6>
+                                <h2><%= orderStats.active %></h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-cogs fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info status-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-title">เสร็จสิ้น</h6>
+                                <h2><%= orderStats.completed %></h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- เมนูหลัก -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-contract fa-3x text-primary mb-3"></i>
+                        <h5>จัดการสัญญา</h5>
+                        <p class="text-muted">สร้างและจัดการสัญญาการผลิต</p>
+                        <a href="/contracts" class="btn btn-primary">เข้าไปจัดการ</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-list fa-3x text-success mb-3"></i>
+                        <h5>คิวการผลิต</h5>
+                        <p class="text-muted">สร้างและติดตามคิวการผลิต</p>
+                        <a href="/production-queue" class="btn btn-success">ดูคิวการผลิต</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plus fa-3x text-warning mb-3"></i>
+                        <h5>สร้างคิวใหม่</h5>
+                        <p class="text-muted">สร้างคิวการผลิตใหม่</p>
+                        <a href="/production-queue/new" class="btn btn-warning">สร้างคิว</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- รายการสัญญาล่าสุด -->
+        <% if (contracts.length > 0) { %>
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-contract"></i> สัญญาล่าสุด</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>หมายเลขสัญญา</th>
+                                    <th>ลูกค้า</th>
+                                    <th>จำนวนสินค้า</th>
+                                    <th>เป้าหมายรวม</th>
+                                    <th>วันที่สร้าง</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% contracts.slice(0, 5).forEach(contract => { %>
+                                    <tr>
+                                        <td><strong><%= contract.Contract_Number %></strong></td>
+                                        <td>ลูกค้า #<%= contract.Customer_ID %></td>
+                                        <td><span class="badge bg-info"><%= contract.package_count || 0 %></span></td>
+                                        <td><%= (contract.total_target || 0).toLocaleString() %></td>
+                                        <td><%= new Date(contract.Created_Date).toLocaleDateString('th-TH') %></td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+EOF
+3. สร้างไฟล์ template อื่นๆ
+bash# สร้าง error template
+cat > views/error.ejs << 'EOF'
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกิดข้อผิดพลาด</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> เกิดข้อผิดพลาด</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <i class="fas fa-exclamation-circle fa-4x text-danger mb-3"></i>
+                        <h4>เกิดข้อผิดพลาด</h4>
+                        <p class="text-muted"><%= error %></p>
+                        <a href="/" class="btn btn-primary">กลับหน้าแรก</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
